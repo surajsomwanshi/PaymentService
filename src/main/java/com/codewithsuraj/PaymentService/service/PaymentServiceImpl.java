@@ -1,7 +1,9 @@
 package com.codewithsuraj.PaymentService.service;
 
 import com.codewithsuraj.PaymentService.entity.TransactionDetails;
+import com.codewithsuraj.PaymentService.model.PaymentMode;
 import com.codewithsuraj.PaymentService.model.PaymentRequest;
+import com.codewithsuraj.PaymentService.model.PaymentResponse;
 import com.codewithsuraj.PaymentService.repository.TransactionDetailsRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +36,28 @@ public class PaymentServiceImpl implements PaymentService{
         log.info("Transaction complete with ID: {}", transactionDetails.getId());
 
         return transactionDetails.getId();
+    }
+
+    @Override
+    public PaymentResponse getPaymentDetails(long orderId) {
+        log.info("Fetching payment details for order ID: {}", orderId);
+        TransactionDetails transactionDetails = transactionDetailsRepository.findByOrderId(orderId);
+
+        if (transactionDetails == null) {
+            log.warn("No payment details found for order ID: {}", orderId);
+            return null;
+        }
+
+        PaymentResponse paymentResponse = PaymentResponse.builder()
+                .paymentId(transactionDetails.getId())
+                .paymentMode(PaymentMode.valueOf(transactionDetails.getPaymentMode()))
+                .paymentDate(transactionDetails.getPaymentDate())
+                .status(transactionDetails.getPaymentStatus())
+                .amount(transactionDetails.getAmount())
+                .orderId(transactionDetails.getOrderId())
+                .build();
+
+        log.info("Payment details retrieved: {}", paymentResponse);
+        return paymentResponse;
     }
 }
